@@ -100,3 +100,68 @@ GRANT SELECT
 ON ALL TABLES
 IN SCHEMA land_row
 TO senior_gis;
+
+CREATE VIEW secured_lots AS
+SELECT
+	lots.corridor_index,
+	lots.geom,
+	lots.province,
+	lots.municipality,
+	lots.nego_phase,
+	lots.price_sale,
+	lots.price_lease,
+	teams.team_lead,
+	ro.registered_owner
+FROM ilocos1_lots lots
+LEFT JOIN ilocos1_teams teams
+	ON lots.team_id = teams.id
+LEFT JOIN ilocos1_ro ro
+	ON lots.ro_id = ro.id
+WHERE nego_phase LIKE 'SECURED%';
+
+CREATE VIEW osol_lots AS
+SELECT
+	lots.corridor_index,
+	lots.geom,
+	lots.province,
+	lots.municipality,
+	lots.nego_phase,
+	lots.price_sale,
+	lots.price_lease,
+	teams.team_lead,
+	ro.registered_owner
+FROM ilocos1_lots lots
+LEFT JOIN ilocos1_teams teams
+	ON lots.team_id = teams.id
+LEFT JOIN ilocos1_ro ro
+	ON lots.ro_id = ro.id
+WHERE nego_phase LIKE 'OPEN%';
+
+-- automatically generate new id to any added rows
+ALTER TABLE ilocos1_ro
+ALTER COLUMN id
+ADD GENERATED ALWAYS AS IDENTITY;
+
+ALTER TABLE ilocos1_teams
+ALTER COLUMN id
+ADD GENERATED ALWAYS AS IDENTITY;
+
+ALTER TABLE ilocos1_lots
+ALTER COLUMN corridor_index
+ADD GENERATED ALWAYS AS IDENTITY;
+
+-- adding a unique constraint to avoid duplication
+ALTER TABLE ilocos1_ro
+ADD CONSTRAINT unique_owner_contact
+UNIQUE (registered_owner);
+
+-- fixes the ERROR: duplicate key value violates unique constraint "ilocos1_lots_pkey" Key (corridor_index)=(1) already exists. 
+SELECT setval(
+    pg_get_serial_sequence('ilocos1_ro', 'id'),
+    (SELECT MAX(id) FROM ilocos1_ro)
+);
+
+SELECT setval(
+    pg_get_serial_sequence('ilocos1_lots', 'corridor_index'),
+    (SELECT MAX(corridor_index) FROM ilocos1_lots)
+);
