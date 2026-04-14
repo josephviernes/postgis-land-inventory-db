@@ -25,7 +25,6 @@ ON CONFLICT (registered_owner) DO NOTHING;
 -- inserting new rows to the fact table
 INSERT INTO ilocos1_lots (province, municipality, lot_area, nego_phase, ro_id, team_id)
 SELECT
-    v.corridor_index,
     v.province,
     v.municipality,
     v.lot_area,
@@ -38,7 +37,7 @@ VALUES
     ('ILOCOS NORTE', 'MARCOS', 15450, 'OPEN TO SALE OR LEASE', 'Vince Masuka', 'Joseph')
 ) as v(corridor_index, province, municipality, lot_area, nego_phase, registered_owner, team_lead)
 JOIN ilocos1_ro ro ON ro.registered_owner = v.registered_owner
-JOIN ilocos_teams teams ON teams.team_lead = v.team_lead;
+JOIN ilocos1_teams teams ON teams.team_lead = v.team_lead;
 
 -- updating the newly added rows
 UPDATE ilocos1_lots
