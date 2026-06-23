@@ -1,3 +1,4 @@
+from io import StringIO
 import psycopg2
 import os
 from dotenv import load_dotenv
@@ -6,43 +7,51 @@ from tkinter import INSERT, filedialog
 from queries import LoadMergeQueries
 
 def main():
-    # load your environment variables specifically the variablle containing database connection credentials
-    load_dotenv()
-    db_info = os.getenv("DB_URL")
-    
-    load(db_info)
-    merge()
-
-
-def load(db_url):
     # Hide the main tkinter window
     root = tk.Tk()
     root.withdraw()
 
-    # Open the file dialog and get the path
-    file_path_input = filedialog.askopenfilename()
-    print(f"Selected File: {file_path_input}")
-
     # fully close Tkinter instance
     root.destroy()
 
+    # Open the file dialog and get the path
+    processed_report = filedialog.askopenfilename()
+
+    print(f"Selected file: {processed_report}")
+
+    # load your environment variables specifically the variablle containing database connection credentials
+    load_dotenv()
+    db_info = os.getenv("DB_URL")
+    staging_table = os.getenv("staging_table")
+    
+    load(db_info, staging_table, processed_report)
+    merge(db_info)
+
+def load(db_url, staging_table, processed_report_df):
+    """Truncates the staging table and bulk-copies the cleaned CSV data into it."""
     try:
         # establish a connection to the database via psycopg2
         conn = psycopg2.connect(db_url)
-        
+        cur = conn.cursor()
+
+        # convert dataframe to a CSV format in memory
+        buffer = StringIO()
+        processed_report_df.to_csv(buffer, index=False, header=False)
+        buffer.seek(0)
+
         # clear any residual data from previous run
-        # open the csv file in read mode
-        with conn.cursor() as cur:
-            cur.execute("TRUNCATE TABLE land_row.ground_reports_staging;")
-            with open(file_path_input, 'r', encoding='utf-8') as file:
-                cur.copy_expert(
-                    sql="COPY land_row.ground_reports_staging FROM STDIN WITH CSV HEADER;",
-                    file=file
-                )
+        cur.execute("TRUNCATE TABLE land_row.ground_reports_staging;")
+
+        # create a list of columns formatted for SQL
+        columns = ",".join(f'"{col}"' for col in processed_report_df.columns)
+
+        # execute bulk copy query
+        sql_copy = f"COPY land_row.ground_reports_staging ({columns}) FROM STDIN WITH CSV"
+        cur.copy_expert(sql_copy, buffer)
 
         # committing changes
         conn.commit()
-        print("Data loaded to staging table")
+        print("Valid reports loaded to staging table")
 
     except Exception as e:
         if conn:
@@ -56,12 +65,8 @@ def load(db_url):
         if conn:
             conn.close()
 
-def merge():
-    # load variables
-    load_dotenv()
-    db_url = os.getenv("DB_URL")
-
-
+def merge(db_url):
+    """Executes upsert and relational queries to merge staging data into main table."""
     try:
         # connect to the database via psycopg2
         conn = psycopg2.connect(db_url)
@@ -69,6 +74,7 @@ def merge():
         # open a cursor to perform database ops
         cur = conn.cursor()
 
+        print('Executing merging queries...')
         # execute the merge query
         cur.execute(LoadMergeQueries.ground_reports_refined_upsert_query)
         cur.execute(LoadMergeQueries.insert_new_ro_query)
