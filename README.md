@@ -11,6 +11,8 @@ Updates to spatial features (e.g., polygons) and attribute data can be managed i
 
 Furthermore, to keep operational data accurate, it features a Python-driven ETL pipeline that ingests tabular ground reports (CSV/XLSX) from field survey teams. This pipeline automatically enriches and updates the non-spatial attributes—such as land title no., ownership information, and negotiation statuses—tied directly to existing spatial layers, eliminating manual data entry and ensuring data consistency across applications like QGIS.
 
+## Database Design: Data Transformation & Dimensional Modeling
+
 ### Data Description
 The dataset used in this project is a fictional and anonymized representation of land parcels in Ilocos Region, Philippines. It is intended solely for demonstration and development purposes.
 
