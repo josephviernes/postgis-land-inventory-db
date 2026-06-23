@@ -155,5 +155,5 @@ class LoadMergeQueries:
                 FROM land_row.ground_reports_refined;
 
                 --clean-up staging table
-                TRUNCATE TABLE land_row.ground_reports_refined_records;
+                TRUNCATE TABLE land_row.ground_reports_refined;
         """
