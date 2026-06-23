@@ -9,12 +9,14 @@ By centralizing data within a spatially enabled PostgreSQL/PostGIS database, the
 
 Updates to spatial features (e.g., polygons) and attribute data can be managed interactively through GIS tools like QGIS or directly via SQL queries, providing a flexible, scalable, and integrated solution for maintaining land parcel datasets.
 
-## Data Description
+Furthermore, to keep operational data accurate, it features a Python-driven ETL pipeline that ingests tabular ground reports (CSV/XLSX) from field survey teams. This pipeline automatically enriches and updates the non-spatial attributes—such as land title no., ownership information, and negotiation statuses—tied directly to existing spatial layers, eliminating manual data entry and ensuring data consistency across applications like QGIS.
+
+### Data Description
 The dataset used in this project is a fictional and anonymized representation of land parcels in Ilocos Region, Philippines. It is intended solely for demonstration and development purposes.
 
 All spatial features and attribute data have been modified to remove any real-world references, ensuring that no sensitive or identifiable information is included.
 
-## Data Transformation
+### Data Transformation
 
 [Link to full schema.sql](schema.sql)
 
@@ -55,13 +57,13 @@ FROM (
 WHERE i."CORRIDOR INDEX" = r."CORRIDOR INDEX";
 ```
 
-## Data Modelling
+### Data Modelling
 
 [Link to full schema.sql](schema.sql)
 
 The cleaned dataset is transformed into a relational schema following a fact–dimension structure. This improves query efficiency, reduces redundancy, and supports analytical use cases.
 
-### Fact Table
+#### Fact Table
 
 The ilocos1_lots table serves as the central fact table containing spatial, transactional, and descriptive attributes.
 
@@ -95,7 +97,7 @@ SELECT
 FROM ilocos1_row_lots;
 ```
 
-### Dimension Tables
+#### Dimension Tables
 
 Separate dimension tables are created to normalize repeated entities and improve relational integrity.
 
@@ -117,7 +119,7 @@ SELECT DISTINCT
 FROM ilocos1_row_lots;
 ```
 
-### Relationships & Constraints
+#### Relationships & Constraints
 
 [ER DIAGRAM](er_diagram.png)
 
@@ -154,7 +156,7 @@ ALTER TABLE ilocos1_teams ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY;
 ALTER TABLE ilocos1_lots ALTER COLUMN corridor_index ADD GENERATED ALWAYS AS IDENTITY;
 ```
 
-## Sample Queries
+### Sample Queries
 
 ```sql
 -- QUERY: Retrieve enriched lot data
