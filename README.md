@@ -11,6 +11,11 @@ Updates to spatial features (e.g., polygons) and attribute data can be managed i
 
 Furthermore, to keep operational data accurate, it features a Python-driven ETL pipeline that ingests tabular ground reports (CSV/XLSX) from field survey teams. This pipeline automatically enriches and updates the non-spatial attributes—such as land title no., ownership information, and negotiation statuses—tied directly to existing spatial layers, eliminating manual data entry and ensuring data consistency across applications like QGIS.
 
+## ETL Pipeline Architecture
+
+[Workflow Diagram](workflow_diagram.png)
+
+
 ## Database Design: Data Transformation & Dimensional Modeling
 
 ### Data Description
