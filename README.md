@@ -13,7 +13,7 @@ Furthermore, to keep operational data accurate, it features a Python-driven ETL 
 
 ## ETL Pipeline Architecture
 
-[Workflow Diagram](workflow_diagram.png)
+![Workflow Diagram](workflow_diagram.png)
 
 
 ## Database Design: Data Transformation & Dimensional Modeling
