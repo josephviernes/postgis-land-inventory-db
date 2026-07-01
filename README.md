@@ -13,7 +13,7 @@ Furthermore, to keep operational data accurate, it features a Python-driven ETL 
 
 ## ETL Pipeline Architecture
 
-![Workflow Diagram](workflow_diagram.png)
+![Workflow Diagram](workflow_diagram.jpg)
 
 
 ## Database Design: Data Transformation & Dimensional Modeling
@@ -128,7 +128,7 @@ FROM ilocos1_row_lots;
 
 #### Relationships & Constraints
 
-[ER DIAGRAM](er_diagram.png)
+![ER DIAGRAM](er_diagram.png)
 
 Primary and foreign keys enforce relational integrity between fact and dimension tables.
 
