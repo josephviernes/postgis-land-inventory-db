@@ -1,0 +1,13 @@
+[Unit]
+Description=Run Daily Python ETL
+After=network.target
+
+[Service]
+Type=oneshot
+User=jnv
+WorkingDirectory=/home/jnv/Documents/project/land-data-pipeline
+EnvironmentFile=/home/jnv/Documents/project/land-data-pipeline/.env
+ExecStart=/home/jnv/Documents/project/land-data-pipeline/.venv/bin/python main.py
+
+[Install]
+WantedBy=multi-user.target
