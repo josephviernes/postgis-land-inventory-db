@@ -11,10 +11,36 @@ Updates to spatial features (e.g., polygons) and attribute data can be managed i
 
 Furthermore, to keep operational data accurate, it features a Python-driven ETL pipeline that ingests tabular ground reports (CSV/XLSX) from field survey teams. This pipeline automatically enriches and updates the non-spatial attributes—such as land title no., ownership information, and negotiation statuses—tied directly to existing spatial layers, eliminating manual data entry and ensuring data consistency across applications like QGIS.
 
-## ETL Pipeline Architecture
+## Data Ingestion & Enrichment & ETL Architecture
+
+### Architectural Workflow Diagram
+
+The system maintains a strict separation of concerns to ensure data integrity. Spatial geometries (the parcel/features shapes) are managed interactively by a GIS Engineer via a live desktop connection, while non-spatial operational attributes (owner data, lot details and negotiation updates) are automatically ingested and validated via a Python-driven ETL pipeline. The system bridges the gap between field operations and spatial analysis by handling geometry and attribute data through two distinct workflows:
 
 ![Workflow Diagram](workflow_diagram.jpg)
 
+### Non-Spatial Attribute Track's ETL Pipeline
+
+### Non-Spatial Attribute Track Pipeline Technical Deep Dive
+
+The Attribute Track runs on a programmatic ETL pipeline (`pandas` + `psycopg2`) designed to automate data validation, transformation, and ingestion without manual SQL execution.
+
+#### 1. Extract & Idempotency Gate
+* **Source & Capture:** The pipeline programmatically scans a designated Google Cloud Storage (GCS) bucket where field teams upload daily tabular ground reports (CSV/XLSX).
+* **Idempotency Logic:** The script evaluates file timestamps to isolate **only the latest report** from the current day. This creates a strict idempotency gate, ensuring that the production database will not re-process stale data or create duplicate operational records if multiple field files are uploaded within the same reporting window.
+
+#### 2. Transform & Quality Gate (DLQ)
+* **Data Transformation & Validation:** The raw data is loaded into a pandas DataFrame where it passes through a structural quality gate. The script enforces schema compliance by verifying data types, standardizing date formats and mobile numbers, and cleaning names by removing honorifics or titles. Additionally, it handles overflow columns, and flags invalid negotiation tags.
+
+* **Isolation (Dead Letter Queue):** Records that fail validation—such as those missing critical relational keys, lot identifiers, or lot owner details—are immediately isolated from the clean dataset. These invalid rows are exported as a standalone error log and routed back to an invalid_reports/ directory in GCS. This Dead Letter Queue (DLQ) keeps the ingestion pipeline running smoothly without halting operations, allowing field teams to fix faulty records independently.
+
+#### 3. Load & Relational Upsert
+* **Bulk Ingestion:** Validated, clean records are streamed efficiently via `psycopg2` into a volatile PostgreSQL staging table (`ground_reports_staging`).
+* **Atomic Relational Upsert:** A specialized database transaction executes a multi-stage execution block:
+  * **Dimension Sync:** It inserts or updates the Registered Owner (`ilocos1_ro`) and Team (`ilocos1_teams`) dimension tables first, handling unique database conflicts gracefully using `ON CONFLICT` constraints.
+  * **Fact Enrichment:** It performs a set-based join between the staging table and the newly updated dimension tables to resolve dynamic foreign keys (`ro_id`, `team_id`). Finally, it upserts the clean operational attributes directly into the core spatial fact table (`ilocos1_lots`) using the unique `corridor_index`.
+  * **Audit Logging:** Concurrently, the update is separately recorded in the `ground_reports_refined_records` table, maintaining an independent, high-fidelity ledger of all successfully processed updates for downstream tracking and analytics.
+* **Live QGIS Refresh:** Because QGIS Desktop maintains a live database connection, any active mapping session streaming this core geometry table—or its dependent spatial views—will instantly render the updated attributes upon map canvas refresh.
 
 ## Database Design: Data Transformation & Dimensional Modeling
 
