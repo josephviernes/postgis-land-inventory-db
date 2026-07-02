@@ -19,9 +19,7 @@ The system maintains a strict separation of concerns to ensure data integrity. S
 
 ![Workflow Diagram](workflow_diagram.jpg)
 
-### Non-Spatial Attribute Track's ETL Pipeline
-
-### Non-Spatial Attribute Track Pipeline Technical Deep Dive
+### Non-Spatial Attribute ETL Pipeline
 
 The Attribute Track runs on a programmatic ETL pipeline (`pandas` + `psycopg2`) designed to automate data validation, transformation, and ingestion without manual SQL execution.
 
