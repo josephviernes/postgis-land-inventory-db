@@ -11,7 +11,7 @@ Updates to spatial features (e.g., polygons) and attribute data can be managed i
 
 Furthermore, to keep operational data accurate, it features a Python-driven ETL pipeline that ingests tabular ground reports (CSV/XLSX) from field survey teams. This pipeline automatically enriches and updates the non-spatial attributes—such as land title no., ownership information, and negotiation statuses—tied directly to existing spatial layers, eliminating manual data entry and ensuring data consistency across applications like QGIS.
 
-## Data Ingestion & Enrichment & ETL Architecture
+## ETL Architecture & Data Workflow
 
 ### Architectural Workflow Diagram
 
@@ -39,6 +39,11 @@ The Attribute Track runs on a programmatic ETL pipeline (`pandas` + `psycopg2`) 
   * **Fact Enrichment:** It performs a set-based join between the staging table and the newly updated dimension tables to resolve dynamic foreign keys (`ro_id`, `team_id`). Finally, it upserts the clean operational attributes directly into the core spatial fact table (`ilocos1_lots`) using the unique `corridor_index`.
   * **Audit Logging:** Concurrently, the update is separately recorded in the `ground_reports_refined_records` table, maintaining an independent, high-fidelity ledger of all successfully processed updates for downstream tracking and analytics.
 * **Live QGIS Refresh:** Because QGIS Desktop maintains a live database connection, any active mapping session streaming this core geometry table—or its dependent spatial views—will instantly render the updated attributes upon map canvas refresh.
+
+### Spatial Geometry Track (GIS Administration)
+* **Actor:** GIS Engineer/Mapper
+* **Tooling:** QGIS connection to PostGIS
+* **Process:** Handles direct spatial data creation/modification and manual attribute updates.
 
 ## Database Design: Initial Migration & Dimensional Modeling
 
