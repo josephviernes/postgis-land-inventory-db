@@ -40,18 +40,18 @@ The Attribute Track runs on a programmatic ETL pipeline (`pandas` + `psycopg2`) 
   * **Audit Logging:** Concurrently, the update is separately recorded in the `ground_reports_refined_records` table, maintaining an independent, high-fidelity ledger of all successfully processed updates for downstream tracking and analytics.
 * **Live QGIS Refresh:** Because QGIS Desktop maintains a live database connection, any active mapping session streaming this core geometry table—or its dependent spatial views—will instantly render the updated attributes upon map canvas refresh.
 
-## Database Design: Data Transformation & Dimensional Modeling
+## Database Design: Initial Migration & Dimensional Modeling
 
 ### Data Description
 The dataset used in this project is a fictional and anonymized representation of land parcels in Ilocos Region, Philippines. It is intended solely for demonstration and development purposes.
 
 All spatial features and attribute data have been modified to remove any real-world references, ensuring that no sensitive or identifiable information is included.
 
-### Data Transformation
+### Migration-Phase Data Transformation
 
-[Link to full schema.sql](schema.sql)
+[Link to full schema.sql](/database/schema.sql)
 
-The transformation layer focuses on cleaning, standardizing, and enriching the raw staging table (ilocos1_row_lots) to prepare it for analytical modelling.
+The transformation layer focuses on cleaning, standardizing, and enriching the raw staging table (ilocos1_row_lots) to prepare it for migration to main table.
 
 Key steps include schema adjustments, removal of irrelevant attributes, fixing inconsistent column names, and generating surrogate keys for relational mapping.
 
@@ -90,7 +90,7 @@ WHERE i."CORRIDOR INDEX" = r."CORRIDOR INDEX";
 
 ### Data Modelling
 
-[Link to full schema.sql](schema.sql)
+[Link to full schema.sql](/database/schema.sql)
 
 The cleaned dataset is transformed into a relational schema following a fact–dimension structure. This improves query efficiency, reduces redundancy, and supports analytical use cases.
 
@@ -185,78 +185,6 @@ ADD CONSTRAINT unique_owner_contact UNIQUE (registered_owner);
 ALTER TABLE ilocos1_ro ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY;
 ALTER TABLE ilocos1_teams ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY;
 ALTER TABLE ilocos1_lots ALTER COLUMN corridor_index ADD GENERATED ALWAYS AS IDENTITY;
-```
-
-### Sample Queries
-
-```sql
--- QUERY: Retrieve enriched lot data
--- PURPOSE: Join fact table with dimension tables to produce a complete analytical view
-SELECT 
-    lots.corridor_index,
-    lots.province,
-    lots.municipality,
-    lots.nego_phase,
-    lots.lot_area,
-    lots.price_sale,
-    lots.payment_terms_sale,
-    teams.team_lead,
-    ro.registered_owner,
-    ro.contact_number
-FROM ilocos1_lots lots
-LEFT JOIN ilocos1_teams teams
-    ON lots.team_id = teams.id
-LEFT JOIN ilocos1_ro ro
-    ON lots.ro_id = ro.id
-WHERE lots.nego_phase = 'OPEN TO SALE OR LEASE';
-
-
--- INSERT: Add new registered owner (dimension table)
--- PURPOSE: Insert a new owner record while preventing duplicates using ON CONFLICT handling
-INSERT INTO ilocos1_ro (registered_owner, contact_number)
-VALUES ('Vince Masuka', 9281921101)
-ON CONFLICT (registered_owner) DO NOTHING;
-
-
--- INSERT: Load new lot records into fact table
--- PURPOSE: Insert transactional lot data and resolve foreign keys using dimension lookups
-INSERT INTO ilocos1_lots (
-    province,
-    municipality,
-    lot_area,
-    nego_phase,
-    ro_id,
-    team_id
-)
-SELECT
-    v.province,
-    v.municipality,
-    v.lot_area,
-    v.nego_phase,
-    ro.id,
-    teams.id
-FROM (
-    VALUES
-        ('ILOCOS NORTE', 'MARCOS', 12300, 'OPEN TO SALE OR LEASE', 'Vince Masuka', 'Joseph'),
-        ('ILOCOS NORTE', 'MARCOS', 15450, 'OPEN TO SALE OR LEASE', 'Vince Masuka', 'Joseph')
-) AS v(province, municipality, lot_area, nego_phase, registered_owner, team_lead)
-JOIN ilocos1_ro ro 
-    ON ro.registered_owner = v.registered_owner
-JOIN ilocos1_teams teams 
-    ON teams.team_lead = v.team_lead;
-
-
--- UPDATE: Correct foreign key mapping
--- PURPOSE: Fix incorrect or placeholder owner references after data insertion
-UPDATE ilocos1_lots
-SET ro_id = 26
-WHERE ro_id = 1819;
-
-
--- DELETE: Remove invalid or unused dimension record
--- PURPOSE: Clean up orphaned or incorrectly inserted owner data
-DELETE FROM ilocos1_ro
-WHERE id = 1819;
 ```
 
 ## Key Learnings
