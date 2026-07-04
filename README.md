@@ -38,12 +38,16 @@ The Attribute Track runs on a programmatic ETL pipeline (`pandas` + `psycopg2`) 
   * **Dimension Sync:** It inserts or updates the Registered Owner (`ilocos1_ro`) and Team (`ilocos1_teams`) dimension tables first, handling unique database conflicts gracefully using `ON CONFLICT` constraints.
   * **Fact Enrichment:** It performs a set-based join between the staging table and the newly updated dimension tables to resolve dynamic foreign keys (`ro_id`, `team_id`). Finally, it upserts the clean operational attributes directly into the core spatial fact table (`ilocos1_lots`) using the unique `corridor_index`.
   * **Audit Logging:** Concurrently, the update is separately recorded in the `ground_reports_refined_records` table, maintaining an independent, high-fidelity ledger of all successfully processed updates for downstream tracking and analytics.
-* **Live QGIS Refresh:** Because QGIS Desktop maintains a live database connection, any active mapping session streaming this core geometry table—or its dependent spatial views—will instantly render the updated attributes upon map canvas refresh.
 
 ### Spatial Geometry Track (GIS Administration)
 * **Actor:** GIS Engineer/Mapper
 * **Tooling:** QGIS connection to PostGIS
 * **Process:** Handles direct spatial data creation/modification and manual attribute updates.
+* **Live Production Output & Dynamic Mapping:** The sample digital map below was generated in QGIS by directly streaming features from the PostGIS database. Driven by the live connection, parcel polygons are dynamically color-coded based on real-time negotiation phases (nego_phase) updated by the Python ETL pipeline. Any map canvas refresh instantly reflects the latest field metrics (e.g., shifting from OPEN TO SALE OR LEASE to CONTRACTED SALE/LEASE), completely eliminating manual layer joins or shapefile exports.
+
+![Parcellary Map](digital_map_sample_output.png)
+
+> 💡 **Dynamic Data Mapping/Live QGIS Refresh::** Because QGIS maintains a direct, live connection to the PostgreSQL instance, any map canvas refresh instantly reflects the latest field metrics (such as a shift from *OPEN TO SALE OR LEASE* to *CONTRACTED SALE/LEASE*) without requiring manual layer joins or shapefile exports.
 
 ## Database Design: Initial Migration & Dimensional Modeling
 
@@ -192,43 +196,13 @@ ALTER TABLE ilocos1_teams ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY;
 ALTER TABLE ilocos1_lots ALTER COLUMN corridor_index ADD GENERATED ALWAYS AS IDENTITY;
 ```
 
-## Key Learnings
-
-### Geospatial Data Ingestion (QGIS → PostGIS)
-Learned how to load geospatial datasets (GeoPackage, Shapefile, CSV, etc.) from QGIS and other sources into a PostGIS-enabled PostgreSQL database, enabling centralized spatial data storage and management.
-
-### Geospatial Data Export (PostGIS → QGIS)
-Practiced retrieving and visualizing data from PostGIS back into QGIS for mapping, validation, and spatial analysis.
-
-### Database Navigation and Management
-Gained familiarity with PostgreSQL GUI tools (e.g., pgAdmin / DB Browser), including schema browsing, table inspection, and query execution.
-
-### Database Administration (Roles, Grants, and Privileges)
-Learned how to manage database security by creating roles, assigning permissions, and controlling access to schemas and tables.
-
-### Data Cleaning, Transformation, and Optimization
-Applied techniques for cleaning raw geospatial data, standardizing attributes, improving data quality, and optimizing table structure and performance.
-
-### SQL Querying for Geospatial Analysis
-Developed skills in writing SQL queries for filtering, joining, aggregating, and analyzing spatial and non-spatial data in PostGIS.
-
 ## Future Improvements
 
-### Automated Data Ingestion Pipeline
+* **Event-Driven DLQ Alerts:** Implement cloud-native event triggers (such as Google Cloud Functions or Slack Webhooks) to instantly alert field supervisors the moment an incoming report fails validation and lands in the DLQ.
 
-Currently, data loading may be manual or semi-manual. This can be improved by building an automated ingestion pipeline (e.g., scheduled ETL using Python, Airflow, or Kestra) to continuously update the PostGIS database from source files or APIs.
+* **Database Partitioning for Scale:** Implement PostgreSQL table partitioning based on geographic boundaries (e.g., partitioning the central fact table by province or municipality) to maintain sub-second query performance as the land inventory scales nationally.
 
-### Versioning of Geospatial Data
-
-Introduce version control for spatial datasets (e.g., tracking changes over time or using temporal tables) to support historical analysis and rollback capability.
-
-### Containerization of the Workflow
-
-Use Docker to containerize the database + tools (PostGIS, pgAdmin, ETL scripts) for easier setup, reproducibility, and deployment.
-
-### Orchestration and Monitoring
-
-Add orchestration (Airflow/Kestra) plus logging and monitoring to track pipeline runs, failures, and data freshness.
+* **Web Mapping Application & Vector Tiles:** Serve the PostGIS tables and spatial views dynamically using a lightweight vector tile server (such as Martin or Tegola) to display live, interactive parcel maps on a lightweight web-based dashboard using Leaflet or MapLibre GL.
 
 ## Acknowledgements
 
