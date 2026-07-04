@@ -47,7 +47,7 @@ The Attribute Track runs on a programmatic ETL pipeline (`pandas` + `psycopg2`) 
 
 ![Parcellary Map](digital_map_sample_output.png)
 
-> 💡 **Dynamic Data Mapping/Live QGIS Refresh::** Because QGIS maintains a direct, live connection to the PostgreSQL instance, any map canvas refresh instantly reflects the latest field metrics (such as a shift from *OPEN TO SALE OR LEASE* to *CONTRACTED SALE/LEASE*) without requiring manual layer joins or shapefile exports.
+> 💡 **Dynamic Data Mapping/Live QGIS Refresh::** Because QGIS maintains a direct, live connection to the PostgreSQL instance, a map canvas refresh instantly reflects the latest field metrics (such as a shift from *OPEN TO SALE OR LEASE* to *CONTRACTED SALE/LEASE*) without requiring manual layer joins or shapefile exports.
 
 ## Database Design: Initial Migration & Dimensional Modeling
 
