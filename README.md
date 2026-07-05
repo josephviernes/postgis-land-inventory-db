@@ -45,7 +45,7 @@ The Attribute Track runs on a programmatic ETL pipeline (`pandas` + `psycopg2`) 
 * **Process:** Handles direct spatial data creation/modification and manual attribute updates.
 * **Live Production Output & Dynamic Mapping:** The sample digital map below was generated in QGIS by directly streaming features from the PostGIS database. Driven by the live connection, parcel polygons are dynamically color-coded based on real-time negotiation phases (nego_phase) updated by the Python ETL pipeline. Any map canvas refresh instantly reflects the latest field metrics (e.g., shifting from OPEN TO SALE OR LEASE to CONTRACTED SALE/LEASE), completely eliminating manual layer joins or shapefile exports.
 
-![Parcellary Map](digital_map_sample_output.png)
+![Parcellary Map](digital_map_sample_output_2.png)
 
 > 💡 **Dynamic Data Mapping/Live QGIS Refresh::** Because QGIS maintains a direct, live connection to the PostgreSQL instance, a map canvas refresh instantly reflects the latest field metrics (such as a shift from *OPEN TO SALE OR LEASE* to *CONTRACTED SALE/LEASE*) without requiring manual layer joins or shapefile exports.
 
