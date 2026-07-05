@@ -1,4 +1,4 @@
-# Transforming Geospatial Data into a Structured PostGIS Database: A Land Parcel Inventory System
+# Transforming Geospatial Data: An End-to-End PostGIS Pipeline for Land Asset Management
 
 By Joseph Viernes
 
@@ -49,7 +49,9 @@ The Attribute Track runs on a programmatic ETL pipeline (`pandas` + `psycopg2`) 
 
 > 💡 **Dynamic Data Mapping/Live QGIS Refresh::** Because QGIS maintains a direct, live connection to the PostgreSQL instance, a map canvas refresh instantly reflects the latest field metrics (such as a shift from *OPEN TO SALE OR LEASE* to *CONTRACTED SALE/LEASE*) without requiring manual layer joins or shapefile exports.
 
-## Database Design: Initial Migration & Dimensional Modeling
+## PostGIS Data Infrastructure: Initial Migration & Dimensional Modeling
+
+This section outlines the PostGIS database initialization and relational schema design. Baseline spatial layers are seeded and structured into a dimensional model first, establishing the target core infrastructure that the Python ETL pipeline dynamically resolves and updates.
 
 ### Data Description
 The dataset used in this project is a fictional and anonymized representation of land parcels in Ilocos Region, Philippines. It is intended solely for demonstration and development purposes.
