@@ -21,7 +21,7 @@ The system maintains a strict separation of concerns to ensure data integrity. S
 
 ### Non-Spatial Attribute ETL Pipeline
 
-The Attribute Track runs on a programmatic ETL pipeline (`pandas` + `psycopg2`) designed to automate data validation, transformation, and ingestion without manual SQL execution.
+The Attribute Track runs on a python ETL pipeline (`pandas` + `psycopg2`) automatically orchestrated via [Linux systemd timers](/orchestration/) to run on a daily cron-like schedule. The pipeline is designed to automate data validation, transformation, and ingestion without manual SQL execution.
 
 #### 1. Extract & Idempotency Gate
 * **Source & Capture:** The pipeline programmatically scans a designated Google Cloud Storage (GCS) bucket where field teams upload daily tabular ground reports (CSV/XLSX).
