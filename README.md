@@ -58,6 +58,9 @@ The dataset used in this project is a fictional and anonymized representation of
 
 All spatial features and attribute data have been modified to remove any real-world references, ensuring that no sensitive or identifiable information is included.
 
+### Containerized PostGIS Infrastructure
+To ensure an isolated, reproducible, and easy-to-spin-up environment, the central database was deployed using a [**Dockerized PostGIS container**](/postgis/docker-compose.yaml). This simplifies initial setup, handles local volume mapping for data persistence, and exposes port 5432 for external programmatic access and database administration.
+
 ### Migration-Phase Data Transformation
 
 [Link to full schema.sql](/database/schema.sql)
