@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 import tkinter as tk
 from tkinter import INSERT, filedialog
-from queries import LoadMergeQueries
+from scripts.queries import LoadMergeQueries
 
 def main():
     # Hide the main tkinter window
@@ -46,7 +46,7 @@ def load(db_url, staging_table, processed_report_df):
         columns = ",".join(f'"{col}"' for col in processed_report_df.columns)
 
         # execute bulk copy query
-        sql_copy = f"COPY land_row.ground_reports_staging ({columns}) FROM STDIN WITH CSV"
+        sql_copy = f"COPY {staging_table} ({columns}) FROM STDIN WITH CSV"
         cur.copy_expert(sql_copy, buffer)
 
         # committing changes
